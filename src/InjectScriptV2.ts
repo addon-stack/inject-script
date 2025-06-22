@@ -19,13 +19,13 @@ type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 export default class extends AbstractInjectScript {
     private message = new Message();
 
-    public constructor(protected options: InjectScriptV2Options) {
-        super(options);
+    public constructor(protected _options: InjectScriptV2Options) {
+        super(_options);
     }
 
     public async run<A extends any[], R extends any>(func: (...args: A) => R, args?: A): Promise<InjectionResult<Awaited<R>>[]> {
         return new Promise<InjectionResult<Awaited<R>>[]>(async (resolve, reject) => {
-            const {tabId} = this.options;
+            const {tabId} = this._options;
 
             const type = `inject-script-${nanoid()}`;
             const injectResults: InjectionResult<Awaited<R>>[] = [];
@@ -62,7 +62,7 @@ export default class extends AbstractInjectScript {
                 unsubscribe();
                 clearTimeout(timeoutId);
                 reject(new Error("Script execution timed out."));
-            }, this.options.timeFallback || 4000);
+            }, this._options.timeFallback || 4000);
 
             const details: InjectDetails = {
                 code: this.getCode(type, func, args),
@@ -86,7 +86,7 @@ export default class extends AbstractInjectScript {
     }
 
     public async file(files: string | string[]): Promise<void> {
-        const {tabId} = this.options;
+        const {tabId} = this._options;
 
         const fileList = typeof files === 'string' ? [files] : files;
 
@@ -145,6 +145,6 @@ export default class extends AbstractInjectScript {
     }
 
     protected get runAt(): RunAt {
-        return this.options.injectImmediately ? "document_start" : "document_idle";
+        return this._options.injectImmediately ? "document_start" : "document_idle";
     }
 }

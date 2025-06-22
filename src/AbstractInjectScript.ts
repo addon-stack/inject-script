@@ -4,11 +4,11 @@ type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>
 
 export default abstract class implements InjectScriptContract {
-    protected constructor(protected options: InjectScriptCommonOptions) {
+    protected constructor(protected _options: InjectScriptCommonOptions) {
     }
 
-    public setOptions(options: Partial<InjectScriptCommonOptions>): this {
-        this.options = {...this.options, ...options, tabId: options.tabId ?? this.options.tabId};
+    public options(options: Partial<InjectScriptCommonOptions>): this {
+        this._options = {...this._options, ...options, tabId: options.tabId ?? this._options.tabId};
 
         return this;
     }
@@ -18,19 +18,19 @@ export default abstract class implements InjectScriptContract {
     public abstract file(files: string | string[]): Promise<void>;
 
     protected get frameIds(): number[] | undefined {
-        const {frameId} = this.options;
+        const {frameId} = this._options;
 
         return typeof frameId === 'number' ? [frameId] : typeof frameId !== 'boolean' ? frameId : undefined;
     }
 
     protected get allFrames(): boolean | undefined {
-        const {frameId} = this.options;
+        const {frameId} = this._options;
 
         return typeof frameId === 'boolean' ? frameId : undefined;
     }
 
     protected get matchAboutBlank(): boolean {
-        const {matchAboutBlank} = this.options;
+        const {matchAboutBlank} = this._options;
 
         return typeof matchAboutBlank === "boolean" ? matchAboutBlank : true;
     }

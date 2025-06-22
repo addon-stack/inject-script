@@ -10,7 +10,7 @@ export interface InjectScriptContract {
 
     file: (files: string | string[]) => Promise<void>;
 
-    setOptions: (options: Partial<InjectScriptCommonOptions>) => this
+    options: (options: Partial<InjectScriptCommonOptions>) => this
 }
 
 export interface InjectScriptCommonOptions {

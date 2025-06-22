@@ -9,25 +9,25 @@ type InjectionTarget = chrome.scripting.InjectionTarget
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>
 
 export default class extends AbstractInjectScript {
-    constructor(protected options: InjectScriptV3Options) {
-        super(options);
+    constructor(protected _options: InjectScriptV3Options) {
+        super(_options);
     }
 
     public async run<A extends any[], R extends any>(func: (...args: A) => R, args?: A): Promise<InjectionResult<Awaited<R>>[]> {
-        const {world, injectImmediately} = this.options;
+        const {world, injectImmediately} = this._options;
 
         return executeScript({target: this.target, func, args, world, injectImmediately});
     }
 
     public async file(fileList: string | string[]): Promise<void> {
-        const {world, injectImmediately} = this.options;
+        const {world, injectImmediately} = this._options;
         const files = typeof fileList === 'string' ? [fileList] : fileList;
 
         await executeScript({target: this.target, files, world, injectImmediately});
     }
 
     protected get target(): InjectionTarget {
-        const {tabId} = this.options;
+        const {tabId} = this._options;
 
         return {
             tabId,
@@ -38,7 +38,7 @@ export default class extends AbstractInjectScript {
     }
 
     protected get documentIds(): string[] | undefined {
-        const {documentId} = this.options;
+        const {documentId} = this._options;
 
         return typeof documentId === 'string' ? [documentId] : documentId;
     }
