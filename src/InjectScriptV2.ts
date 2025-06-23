@@ -4,7 +4,7 @@ import {executeScriptTab, getAllFrames, onMessage} from "@adnbn/browser";
 
 import AbstractInjectScript from "./AbstractInjectScript";
 
-import {InjectScriptV2Options} from "./types";
+import {InjectScriptOptions} from "./types";
 
 type RunAt = chrome.extensionTypes.RunAt;
 type InjectDetails = chrome.extensionTypes.InjectDetails;
@@ -14,12 +14,19 @@ type MessageSender = chrome.runtime.MessageSender;
 type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
+export interface InjectScriptV2Options extends InjectScriptOptions {
+    timeFallback?: number;
+}
+
 export default class extends AbstractInjectScript {
     public constructor(protected _options: InjectScriptV2Options) {
         super(_options);
     }
 
-    public async run<A extends any[], R extends any>(func: (...args: A) => R, args?: A): Promise<InjectionResult<Awaited<R>>[]> {
+    public async run<A extends any[], R extends any>(
+        func: (...args: A) => R,
+        args?: A
+    ): Promise<InjectionResult<Awaited<R>>[]> {
         return new Promise<InjectionResult<Awaited<R>>[]>(async (resolve, reject) => {
             const {tabId} = this._options;
 
@@ -70,7 +77,7 @@ export default class extends AbstractInjectScript {
             };
 
             if (this.allFrames) {
-                frameCount = (await getAllFrames(tabId) || []).length;
+                frameCount = ((await getAllFrames(tabId)) || []).length;
 
                 await executeScriptTab(tabId, {...details, allFrames: true});
             } else if (this.frameIds) {
@@ -83,13 +90,12 @@ export default class extends AbstractInjectScript {
                 await executeScriptTab(tabId, details);
             }
         });
-
     }
 
     public async file(files: string | string[]): Promise<void> {
         const {tabId} = this._options;
 
-        const fileList = typeof files === 'string' ? [files] : files;
+        const fileList = typeof files === "string" ? [files] : files;
 
         const injectTasks: Promise<any>[] = [];
 
