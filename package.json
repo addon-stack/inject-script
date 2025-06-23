@@ -1,0 +1,53 @@
+{
+  "name": "@adnbn/inject-script",
+  "version": "0.1.0",
+  "description": "A lightweight, TypeScript-ready library for injecting JavaScript functions or external scripts into Chrome extension tabs and frames (Manifest V2 & V3).",
+  "keywords": [
+    "browser",
+    "addon",
+    "extension",
+    "google",
+    "chrome",
+    "opera",
+    "edge",
+    "firefox",
+    "safari",
+    "api",
+    "script"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:addonbone/inject-css.git"
+  },
+  "license": "MIT",
+  "author": "Addon Bone",
+  "type": "module",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "format": "prettier --write .",
+    "build": "tsup",
+    "build:watch": "tsup --watch"
+  },
+  "dependencies": {
+    "@adnbn/browser": "^0.1.5",
+    "nanoid": "^5.1.5"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.326",
+    "prettier": "^3.5.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  }
+}
