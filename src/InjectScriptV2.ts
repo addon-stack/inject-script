@@ -78,6 +78,8 @@ export default class extends AbstractInjectScript {
 
                 await Promise.all(this.frameIds.map(frameId => executeScriptTab(tabId, {...details, frameId})));
             } else {
+                frameCount = 1;
+
                 await executeScriptTab(tabId, details);
             }
         });
@@ -112,11 +114,11 @@ export default class extends AbstractInjectScript {
 
     protected getCode(type: string, func: Function, args?: any[]): string {
         const codeSource = this.generateCode().toString();
+        const funcSource = func.toString();
         const serializedType = JSON.stringify(type);
-        const serializedFunc = JSON.stringify(func);
         const serializedArgs = JSON.stringify(args ?? []);
 
-        return `(${codeSource})(${serializedType}, ${serializedFunc}, ${serializedArgs})`;
+        return `(${codeSource})(${serializedType}, ${funcSource}, ${serializedArgs})`;
     }
 
     protected generateCode(): (type: string, func: Function, args: any[]) => void {
@@ -136,9 +138,7 @@ export default class extends AbstractInjectScript {
                     };
                 })
                 .finally(() => {
-                    chrome.runtime
-                        .sendMessage({type, data})
-                        .catch((err) => console.error('Error send message when injection script', err));
+                    chrome.runtime.sendMessage({type, data});
                 });
         };
     }
