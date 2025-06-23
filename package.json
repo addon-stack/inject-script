@@ -41,9 +41,11 @@
     "build:watch": "tsup --watch"
   },
   "dependencies": {
-    "@adnbn/browser": "^0.1.5"
+    "@adnbn/browser": "^0.1.5",
+    "nanoid": "^5.1.5"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.326",
     "prettier": "^3.5.3",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
