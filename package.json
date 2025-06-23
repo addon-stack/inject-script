@@ -1,6 +1,6 @@
 {
   "name": "@adnbn/inject-script",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight, TypeScript-ready library for injecting JavaScript functions or external scripts into Chrome extension tabs and frames (Manifest V2 & V3).",
   "keywords": [
     "browser",
@@ -17,7 +17,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:addonbone/inject-css.git"
+    "url": "git@github.com:addonbone/inject-script.git"
   },
   "license": "MIT",
   "author": "Addon Bone",
