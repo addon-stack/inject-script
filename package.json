@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@adnbn/browser": "^0.1.5",
-    "adnbn": "^0.0.53"
+    "nanoid": "^5.1.5"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.326",

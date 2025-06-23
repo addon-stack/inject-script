@@ -1,10 +1,8 @@
 import {nanoid} from "nanoid/non-secure";
 
-import {Message} from "adnbn/message";
+import {executeScriptTab, getAllFrames, onMessage} from "@adnbn/browser";
 
-import {getAllFrames, executeScriptTab } from "@adnbn/browser";
-
-import AbstractInjectScript  from "./AbstractInjectScript";
+import AbstractInjectScript from "./AbstractInjectScript";
 
 import {InjectScriptV2Options} from "./types";
 
@@ -17,8 +15,6 @@ type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
 export default class extends AbstractInjectScript {
-    private message = new Message();
-
     public constructor(protected _options: InjectScriptV2Options) {
         super(_options);
     }
@@ -32,10 +28,13 @@ export default class extends AbstractInjectScript {
 
             let frameCount: number = 0;
 
-            const listener = (data: { result?: any, error?: Error }, {frameId, documentId}: MessageSender) => {
-                frameCount -= 1;
+            const listener = (message: any, sender: MessageSender) => {
+                if (message?.type !== type) return;
 
-                const {result, error} = data;
+                const {result, error} = message?.data;
+                const {frameId, documentId} = sender;
+
+                frameCount -= 1;
 
                 if (frameId == null || documentId == null) {
                     throw new Error("frameId or documentId is missing in sender");
@@ -56,7 +55,7 @@ export default class extends AbstractInjectScript {
                 }
             };
 
-            const unsubscribe = this.message.watch(type, listener);
+            const unsubscribe = onMessage(listener);
 
             const timeoutId = setTimeout(() => {
                 unsubscribe();
