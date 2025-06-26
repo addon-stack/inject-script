@@ -10,9 +10,9 @@ Automatically detects Chrome Extension Manifest V2 and V3 and delegates to the a
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Executing Functions](#executing-functions)
-  - [Injecting Script Files](#injecting-script-files)
-  - [Updating Options](#updating-options)
+    - [Executing Functions](#executing-functions)
+    - [Injecting Script Files](#injecting-script-files)
+    - [Updating Options](#updating-options)
 - [API](#api)
 - [Options](#options)
 - [Examples](#examples)
@@ -41,23 +41,26 @@ import injectScript, {InjectScriptOptions} from "@adnbn/inject-script";
 
 // Initialize an injector for a specific tab (Manifest V2 or V3)
 const injector = injectScript({
-  tabId: 123,
-  frameId: false,           // inject into the top frame only
-  matchAboutBlank: true,    // include about:blank frames
-  injectImmediately: false, // inject at `document_idle`
-  // V2 only: timeFallback: 5000,   // ms before timing out (default: 4000)
-  // V3 only: world: 'ISOLATED', documentId: 'abc123'
+    tabId: 123,
+    frameId: false, // inject into the top frame only
+    matchAboutBlank: true, // include about:blank frames
+    runAt: "document_idle", // inject at `document_idle`
+    // V2 only: timeFallback: 5000,   // ms before timing out (default: 4000)
+    // V3 only: world: 'ISOLATED', documentId: 'abc123'
 });
 
 // Execute a function in the page context
-await injector.run((msg: string) => {
-  console.log(msg);
-  return 'Done';
-}, ['Hello from extension!']);
+await injector.run(
+    (msg: string) => {
+        console.log(msg);
+        return "Done";
+    },
+    ["Hello from extension!"]
+);
 
 // Inject one or more external script files
-await injector.file('scripts/content.js');
-await injector.file(['scripts/lib.js', 'scripts/util.js']);
+await injector.file("scripts/content.js");
+await injector.file(["scripts/lib.js", "scripts/util.js"]);
 ```
 
 ### Executing Functions
@@ -74,7 +77,7 @@ Use the `options(opts: Partial<InjectScriptOptions>)` method to merge or overrid
 
 ## API
 
-### `injectScript(options: InjectScriptUnionOptions): InjectScriptContract`
+### `injectScript(options: InjectScriptOptions): InjectScriptContract`
 
 Creates and returns a new script injector. Detects your manifest version via `@adnbn/browser` and delegates to the appropriate implementation.
 
@@ -86,15 +89,15 @@ Creates and returns a new script injector. Detects your manifest version via `@a
 
 ## Options
 
-| Option             | Type                                    | Description                                                                                     |
-| ------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `tabId`            | `number` (required)                     | Target browser tab ID.                                                                          |
-| `frameId`          | `boolean \| number \| number[]`        | `true` for all frames, number or list for specific frame IDs.                                   |
-| `matchAboutBlank`  | `boolean`                               | Include `about:blank` and similar frames (V2 and V3). Default: `true`.                          |
-| `injectImmediately` | `boolean`                               | Inject at `document_start` (`true`) or `document_idle` (`false`).                                |
-| `timeFallback`     | `number`                                | (V2 only) ms before timing out. Default: `4000`.                                                |
-| `world`            | `'MAIN' \| 'ISOLATED'`                 | (V3 only) Execution world for script injection.                                                 |
-| `documentId`       | `string \| string[]`                    | (V3 only) Document IDs for injection target.                                                    |
+| Option            | Type                                                    | Description                                                                                                  |
+| ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `tabId`           | `number` (required)                                     | Target browser tab ID.                                                                                       |
+| `frameId`         | `boolean \| number \| number[]`                         | `true` for all frames, number or list for specific frame IDs.                                                |
+| `matchAboutBlank` | `boolean`                                               | Include `about:blank` and similar frames (V2 and V3). Default: `true`.                                       |
+| `runAt`           | `'document_start' \| 'document_end' \| 'document_idle'` | Script injection timing. Use `document_start`, `document_end`, or `document_idle`. Default: `document_idle`. |
+| `timeFallback`    | `number`                                                | (V2 only) ms before timing out. Default: `4000`.                                                             |
+| `world`           | `'MAIN' \| 'ISOLATED'`                                  | (V3 only) Execution world for script injection.                                                              |
+| `documentId`      | `string \| string[]`                                    | (V3 only) Document IDs for injection target.                                                                 |
 
 ## Examples
 
@@ -102,11 +105,11 @@ Creates and returns a new script injector. Detects your manifest version via `@a
 import injectScript from "@adnbn/inject-script";
 
 const injector = injectScript({
-  tabId: 123,
-  frameId: [0, 1],
-  injectImmediately: true,
-  world: 'MAIN',
-  documentId: ['doc1', 'doc2']
+    tabId: 123,
+    frameId: [0, 1],
+    runAt: "document_start",
+    world: "MAIN",
+    documentId: ["doc1", "doc2"],
 });
 
 // Execute code and handle results
@@ -114,12 +117,13 @@ const results = await injector.run(() => location.href);
 console.log(results);
 
 // Inject scripts
-await injector.file(['content.js', 'helper.js']);
+await injector.file(["content.js", "helper.js"]);
 ```
 
 ## Development
 
 Build files
+
 ```bash
 npm run build
 ```
