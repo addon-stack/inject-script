@@ -17,23 +17,27 @@ export default class extends AbstractInjectScript {
         func: (...args: A) => R,
         args?: A
     ): Promise<InjectionResult<Awaited<R>>[]> {
-        const {world} = this._options;
-
-        return executeScript({target: this.target, func, args, world, injectImmediately: this.injectImmediately});
+        return executeScript({
+            target: this.target,
+            world: this._options.world,
+            injectImmediately: this.injectImmediately,
+            func,
+            args,
+        });
     }
 
     public async file(fileList: string | string[]): Promise<void> {
-        const {world} = this._options;
-        const files = typeof fileList === "string" ? [fileList] : fileList;
-
-        await executeScript({target: this.target, files, world, injectImmediately: this.injectImmediately});
+        await executeScript({
+            target: this.target,
+            world: this._options.world,
+            injectImmediately: this.injectImmediately,
+            files: typeof fileList === "string" ? [fileList] : fileList,
+        });
     }
 
     protected get target(): InjectionTarget {
-        const {tabId} = this._options;
-
         return {
-            tabId,
+            tabId: this._options.tabId,
             allFrames: this.allFrames,
             frameIds: this.frameIds,
             documentIds: this.documentIds,
