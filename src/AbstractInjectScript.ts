@@ -1,4 +1,4 @@
-import {InjectScriptOptions, InjectScriptContract} from "./types";
+import {InjectScriptContract, InjectScriptOptions} from "./types";
 
 type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
@@ -7,7 +7,11 @@ export default abstract class implements InjectScriptContract {
     protected constructor(protected _options: InjectScriptOptions) {}
 
     public options(options: Partial<InjectScriptOptions>): this {
-        this._options = {...this._options, ...options, tabId: options.tabId ?? this._options.tabId};
+        this._options = {
+            ...this._options,
+            ...options,
+            tabId: options.tabId ?? this._options.tabId,
+        };
 
         return this;
     }

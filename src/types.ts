@@ -1,4 +1,6 @@
+type RunAt = chrome.extensionTypes.RunAt;
 type Awaited<T> = chrome.scripting.Awaited<T>;
+type ExecutionWorld = chrome.scripting.ExecutionWorld;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
 export interface InjectScriptContract {
@@ -13,5 +15,12 @@ export interface InjectScriptOptions {
     tabId: number;
     frameId?: boolean | number | number[];
     matchAboutBlank?: boolean;
-    injectImmediately?: boolean;
+
+    // Options for MV2
+    runAt?: RunAt;
+    timeFallback?: number;
+
+    // Options for MV3
+    world?: ExecutionWorld;
+    documentId?: string | string[];
 }
