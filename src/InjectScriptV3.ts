@@ -7,39 +7,37 @@ import {InjectScriptOptions} from "./types";
 type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionTarget = chrome.scripting.InjectionTarget;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
-type ExecutionWorld = chrome.scripting.ExecutionWorld;
-
-export interface InjectScriptV3Options extends InjectScriptOptions {
-    world?: ExecutionWorld;
-    documentId?: string | string[];
-}
 
 export default class extends AbstractInjectScript {
-    constructor(protected _options: InjectScriptV3Options) {
-        super(_options);
+    constructor(options: InjectScriptOptions) {
+        super(options);
     }
 
     public async run<A extends any[], R extends any>(
         func: (...args: A) => R,
         args?: A
     ): Promise<InjectionResult<Awaited<R>>[]> {
-        const {world, injectImmediately} = this._options;
-
-        return executeScript({target: this.target, func, args, world, injectImmediately});
+        return executeScript({
+            target: this.target,
+            world: this._options.world,
+            injectImmediately: this.injectImmediately,
+            func,
+            args,
+        });
     }
 
     public async file(fileList: string | string[]): Promise<void> {
-        const {world, injectImmediately} = this._options;
-        const files = typeof fileList === "string" ? [fileList] : fileList;
-
-        await executeScript({target: this.target, files, world, injectImmediately});
+        await executeScript({
+            target: this.target,
+            world: this._options.world,
+            injectImmediately: this.injectImmediately,
+            files: typeof fileList === "string" ? [fileList] : fileList,
+        });
     }
 
     protected get target(): InjectionTarget {
-        const {tabId} = this._options;
-
         return {
-            tabId,
+            tabId: this._options.tabId,
             allFrames: this.allFrames,
             frameIds: this.frameIds,
             documentIds: this.documentIds,
@@ -50,5 +48,9 @@ export default class extends AbstractInjectScript {
         const {documentId} = this._options;
 
         return typeof documentId === "string" ? [documentId] : documentId;
+    }
+
+    protected get injectImmediately(): boolean {
+        return this._options.runAt === "document_start";
     }
 }
