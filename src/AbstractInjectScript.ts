@@ -1,4 +1,4 @@
-import {InjectScriptOptions, InjectScriptContract} from "./types";
+import {InjectScriptContract, InjectScriptOptions} from "./types";
 
 type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;

@@ -6,21 +6,14 @@ import AbstractInjectScript from "./AbstractInjectScript";
 
 import {InjectScriptOptions} from "./types";
 
-type RunAt = chrome.extensionTypes.RunAt;
-type InjectDetails = chrome.extensionTypes.InjectDetails;
-
-type MessageSender = chrome.runtime.MessageSender;
-
 type Awaited<T> = chrome.scripting.Awaited<T>;
+type MessageSender = chrome.runtime.MessageSender;
+type InjectDetails = chrome.extensionTypes.InjectDetails;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
-export interface InjectScriptV2Options extends InjectScriptOptions {
-    timeFallback?: number;
-}
-
 export default class extends AbstractInjectScript {
-    public constructor(protected _options: InjectScriptV2Options) {
-        super(_options);
+    public constructor(options: InjectScriptOptions) {
+        super(options);
     }
 
     public async run<A extends any[], R extends any>(
@@ -28,7 +21,7 @@ export default class extends AbstractInjectScript {
         args?: A
     ): Promise<InjectionResult<Awaited<R>>[]> {
         return new Promise<InjectionResult<Awaited<R>>[]>(async (resolve, reject) => {
-            const {tabId} = this._options;
+            const {tabId, runAt} = this._options;
 
             const type = `inject-script-${nanoid()}`;
             const injectResults: InjectionResult<Awaited<R>>[] = [];
@@ -71,8 +64,8 @@ export default class extends AbstractInjectScript {
             }, this._options.timeFallback || 4000);
 
             const details: InjectDetails = {
+                runAt,
                 code: this.getCode(type, func, args),
-                runAt: this.runAt,
                 matchAboutBlank: this.matchAboutBlank,
             };
 
@@ -93,18 +86,14 @@ export default class extends AbstractInjectScript {
     }
 
     public async file(files: string | string[]): Promise<void> {
-        const {tabId} = this._options;
+        const {tabId, runAt} = this._options;
 
         const fileList = typeof files === "string" ? [files] : files;
 
         const injectTasks: Promise<any>[] = [];
 
         for (const file of fileList) {
-            const details: InjectDetails = {
-                file,
-                runAt: this.runAt,
-                matchAboutBlank: this.matchAboutBlank,
-            };
+            const details: InjectDetails = {file, runAt, matchAboutBlank: this.matchAboutBlank};
 
             if (this.allFrames) {
                 injectTasks.push(executeScriptTab(tabId, {...details, allFrames: true}));
@@ -147,9 +136,5 @@ export default class extends AbstractInjectScript {
                     chrome.runtime.sendMessage({type, data});
                 });
         };
-    }
-
-    protected get runAt(): RunAt {
-        return this._options.injectImmediately ? "document_start" : "document_idle";
     }
 }
