@@ -41,7 +41,7 @@
     "build:watch": "tsup --watch"
   },
   "dependencies": {
-    "@adnbn/browser": "^0.1.5",
+    "@adnbn/browser": "^0.1.7",
     "nanoid": "^5.1.5"
   },
   "devDependencies": {
