@@ -49,8 +49,7 @@ export default class extends AbstractInjectScript {
             if (name === "Firefox") {
                 return target;
             }
-        } catch (err) {
-        }
+        } catch (err) {}
 
         return {...target, documentIds: this.documentIds};
     }

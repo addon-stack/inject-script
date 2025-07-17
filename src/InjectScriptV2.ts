@@ -32,7 +32,7 @@ export default class extends AbstractInjectScript {
                 if (message?.type !== type) return;
 
                 const {result, error} = message?.data;
-                const {frameId, documentId = '', } = sender;
+                const {frameId, documentId = ""} = sender;
 
                 frameCount -= 1;
 
