@@ -1,6 +1,6 @@
 {
   "name": "@adnbn/inject-script",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A lightweight, TypeScript-ready library for injecting JavaScript functions or external scripts into Chrome extension tabs and frames (Manifest V2 & V3).",
   "keywords": [
     "browser",
@@ -41,7 +41,7 @@
     "build:watch": "tsup --watch"
   },
   "dependencies": {
-    "@adnbn/browser": "^0.1.5",
+    "@adnbn/browser": "^0.1.7",
     "nanoid": "^5.1.5"
   },
   "devDependencies": {
