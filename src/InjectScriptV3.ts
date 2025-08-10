@@ -1,4 +1,4 @@
-import {executeScript, getBrowserInfo} from "@adnbn/browser";
+import {executeScript, browser} from "@adnbn/browser";
 
 import AbstractInjectScript from "./AbstractInjectScript";
 
@@ -18,7 +18,7 @@ export default class extends AbstractInjectScript {
         args?: A
     ): Promise<InjectionResult<Awaited<R>>[]> {
         return executeScript({
-            target: await this.target(),
+            target: this.target(),
             world: this._options.world,
             injectImmediately: this.injectImmediately,
             func,
@@ -28,28 +28,26 @@ export default class extends AbstractInjectScript {
 
     public async file(fileList: string | string[]): Promise<void> {
         await executeScript({
-            target: await this.target(),
+            target: this.target(),
             world: this._options.world,
             injectImmediately: this.injectImmediately,
             files: typeof fileList === "string" ? [fileList] : fileList,
         });
     }
 
-    protected async target(): Promise<InjectionTarget> {
+    protected target(): InjectionTarget {
         const target = {
             tabId: this._options.tabId,
             allFrames: this.allFrames,
             frameIds: this.frameIds,
         };
 
-        try {
-            const {name} = await getBrowserInfo();
-
-            // Firefox does not support `documentIds` in the target
-            if (name === "Firefox") {
-                return target;
-            }
-        } catch (err) {}
+        // Firefox does not support `documentIds` in the target
+        // getBrowserInfo is only available in firefox
+        // @ts-ignore
+        if (!!browser().runtime.getBrowserInfo) {
+            return target;
+        }
 
         return {...target, documentIds: this.documentIds};
     }
