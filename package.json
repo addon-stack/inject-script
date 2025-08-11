@@ -1,6 +1,6 @@
 {
   "name": "@adnbn/inject-script",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A lightweight, TypeScript-ready library for injecting JavaScript functions or external scripts into Chrome extension tabs and frames (Manifest V2 & V3).",
   "keywords": [
     "browser",
@@ -22,13 +22,19 @@
   "license": "MIT",
   "author": "Addon Bone",
   "type": "module",
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs.js"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "files": [
