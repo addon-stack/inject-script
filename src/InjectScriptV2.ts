@@ -1,10 +1,6 @@
+import {executeScriptTab, getAllFrames, onMessage} from "@addon-core/browser";
 import {nanoid} from "nanoid/non-secure";
-
-import {executeScriptTab, getAllFrames, onMessage} from "@adnbn/browser";
-
 import AbstractInjectScript from "./AbstractInjectScript";
-
-import {InjectScriptOptions} from "./types";
 
 type Awaited<T> = chrome.scripting.Awaited<T>;
 type MessageSender = chrome.runtime.MessageSender;
@@ -12,15 +8,8 @@ type InjectDetails = chrome.extensionTypes.InjectDetails;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
 export default class extends AbstractInjectScript {
-    public constructor(options: InjectScriptOptions) {
-        super(options);
-    }
-
-    public async run<A extends any[], R extends any>(
-        func: (...args: A) => R,
-        args?: A
-    ): Promise<InjectionResult<Awaited<R>>[]> {
-        return new Promise<InjectionResult<Awaited<R>>[]>(async (resolve, reject) => {
+    public async run<A extends any[], R>(func: (...args: A) => R, args?: A): Promise<InjectionResult<Awaited<R>>[]> {
+        return new Promise<InjectionResult<Awaited<R>>[]>((resolve, reject) => {
             const {tabId, runAt} = this._options;
 
             const type = `inject-script-${nanoid()}`;
@@ -31,7 +20,7 @@ export default class extends AbstractInjectScript {
             const listener = (message: any, sender: MessageSender) => {
                 if (message?.type !== type) return;
 
-                const {result, error} = message?.data;
+                const {result, error} = (message as any)?.data ?? {};
                 const {frameId, documentId = ""} = sender;
 
                 frameCount -= 1;
@@ -69,19 +58,27 @@ export default class extends AbstractInjectScript {
                 matchAboutBlank: this.matchAboutBlank,
             };
 
-            if (this.allFrames) {
-                frameCount = ((await getAllFrames(tabId)) || []).length;
+            void (async () => {
+                try {
+                    if (this.allFrames) {
+                        frameCount = ((await getAllFrames(tabId)) || []).length;
 
-                await executeScriptTab(tabId, {...details, allFrames: true});
-            } else if (this.frameIds) {
-                frameCount = this.frameIds.length;
+                        await executeScriptTab(tabId, {...details, allFrames: true});
+                    } else if (this.frameIds) {
+                        frameCount = this.frameIds.length;
 
-                await Promise.all(this.frameIds.map(frameId => executeScriptTab(tabId, {...details, frameId})));
-            } else {
-                frameCount = 1;
+                        await Promise.all(this.frameIds.map(frameId => executeScriptTab(tabId, {...details, frameId})));
+                    } else {
+                        frameCount = 1;
 
-                await executeScriptTab(tabId, details);
-            }
+                        await executeScriptTab(tabId, details);
+                    }
+                } catch (e) {
+                    unsubscribe();
+                    clearTimeout(timeoutId);
+                    reject(e as Error);
+                }
+            })();
         });
     }
 
@@ -107,7 +104,7 @@ export default class extends AbstractInjectScript {
         await Promise.all(injectTasks);
     }
 
-    protected getCode(type: string, func: Function, args?: any[]): string {
+    protected getCode(type: string, func: (...args: any[]) => any, args?: any[]): string {
         const codeSource = this.generateCode().toString();
         const funcSource = func.toString();
         const serializedType = JSON.stringify(type);
@@ -116,8 +113,8 @@ export default class extends AbstractInjectScript {
         return `(${codeSource})(${serializedType}, ${funcSource}, ${serializedArgs})`;
     }
 
-    protected generateCode(): (type: string, func: Function, args: any[]) => void {
-        return function (type: string, func: Function, args: any[]): void {
+    protected generateCode(): (type: string, func: (...args: any[]) => any, args: any[]) => void {
+        return (type: string, func: (...args: any[]) => any, args: any[]): void => {
             const data: Record<string, unknown> = {};
 
             Promise.resolve()

@@ -1,22 +1,12 @@
-import {executeScript, browser} from "@adnbn/browser";
-
+import {browser, executeScript} from "@addon-core/browser";
 import AbstractInjectScript from "./AbstractInjectScript";
-
-import {InjectScriptOptions} from "./types";
 
 type Awaited<T> = chrome.scripting.Awaited<T>;
 type InjectionTarget = chrome.scripting.InjectionTarget;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
 export default class extends AbstractInjectScript {
-    constructor(options: InjectScriptOptions) {
-        super(options);
-    }
-
-    public async run<A extends any[], R extends any>(
-        func: (...args: A) => R,
-        args?: A
-    ): Promise<InjectionResult<Awaited<R>>[]> {
+    public async run<A extends any[], R>(func: (...args: A) => R, args?: A): Promise<InjectionResult<Awaited<R>>[]> {
         return executeScript({
             target: this.target(),
             world: this._options.world,
@@ -36,20 +26,30 @@ export default class extends AbstractInjectScript {
     }
 
     protected target(): InjectionTarget {
-        const target = {
-            tabId: this._options.tabId,
-            allFrames: this.allFrames,
-            frameIds: this.frameIds,
-        };
+        const target = {tabId: this._options.tabId};
+
+        if (this.frameIds && this.frameIds.length > 0) {
+            return {...target, frameIds: this.frameIds};
+        }
+
+        if (this.allFrames === true) {
+            return {...target, allFrames: true};
+        }
 
         // Firefox does not support `documentIds` in the target
         // getBrowserInfo is only available in firefox
-        // @ts-ignore
-        if (!!browser().runtime.getBrowserInfo) {
-            return target;
+        // @ts-expect-error
+        const isFirefox = !!browser().runtime.getBrowserInfo;
+
+        if (!isFirefox) {
+            const documentIds = this.documentIds;
+
+            if (documentIds && documentIds.length > 0) {
+                return {...target, documentIds};
+            }
         }
 
-        return {...target, documentIds: this.documentIds};
+        return target;
     }
 
     protected get documentIds(): string[] | undefined {
