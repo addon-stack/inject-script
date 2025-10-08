@@ -1,149 +1,176 @@
-# @adnbn/inject-script
+# @addon-core/inject-script
 
-[![npm version](https://img.shields.io/npm/v/@adnbn/inject-script.svg)](https://www.npmjs.com/package/@adnbn/inject-script)
-[![npm downloads](https://img.shields.io/npm/dm/@adnbn/inject-script.svg)](https://www.npmjs.com/package/@adnbn/inject-script)
+[![npm version](https://img.shields.io/npm/v/%40addon-core%2Finject-script.svg?logo=npm)](https://www.npmjs.com/package/@addon-core/inject-script)
+[![npm downloads](https://img.shields.io/npm/dm/%40addon-core%2Finject-script.svg)](https://www.npmjs.com/package/@addon-core/inject-script)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+[![CI](https://github.com/addon-stack/inject-script/actions/workflows/ci.yml/badge.svg)](https://github.com/addon-stack/inject-script/actions/workflows/ci.yml)
 
-A lightweight, TypeScript-ready library for injecting JavaScript functions or external script files into browser extension pages.
-Automatically detects Chrome Extension Manifest V2 and V3 and delegates to the appropriate API.
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Usage](#usage)
-    - [Executing Functions](#executing-functions)
-    - [Injecting Script Files](#injecting-script-files)
-    - [Updating Options](#updating-options)
-- [API](#api)
-- [Options](#options)
-- [Examples](#examples)
-- [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
+A lightweight, TypeScript-ready library for injecting JavaScript functions and external script files into browser extension pages. It automatically detects Manifest V2/V3 and uses the appropriate API implementation.
 
 ## Installation
 
-Using npm:
+### npm:
 
 ```bash
-npm install @adnbn/inject-script
+npm install @addon-core/inject-script
 ```
 
-Using Yarn:
+### pnpm:
 
 ```bash
-yarn add @adnbn/inject-script
+pnpm add @addon-core/inject-script
 ```
 
-## Usage
+### yarn:
+
+```bash
+yarn add @addon-core/inject-script
+```
+
+## Quick Start
 
 ```ts
-import injectScript, {InjectScriptOptions} from "@adnbn/inject-script";
+import injectScript, { type InjectScriptOptions } from "@addon-core/inject-script";
 
-// Initialize an injector for a specific tab (Manifest V2 or V3)
+// Initialize an injector for a specific tab
 const injector = injectScript({
-    tabId: 123,
-    frameId: false, // inject into the top frame only
-    matchAboutBlank: true, // include about:blank frames
-    runAt: "document_idle", // inject at `document_idle`
-    // V2 only: timeFallback: 5000,   // ms before timing out (default: 4000)
-    // V3 only: world: 'ISOLATED', documentId: 'abc123'
-});
+  tabId: 123,
+  frameId: false,          // top frame only
+  matchAboutBlank: true,   // include about:blank and similar pages
+  runAt: "document_idle",  // injection timing (MV2)
+  // timeFallback: 5000,   // (MV2) default timeout is 4000 ms
+  // world: 'ISOLATED',    // (MV3) execution world
+  // documentId: 'abc123', // (MV3) target by documentId
+} satisfies InjectScriptOptions);
 
-// Execute a function in the page context
-await injector.run(
-    (msg: string) => {
-        console.log(msg);
-        return "Done";
-    },
-    ["Hello from extension!"]
+// Execute a function in the page context (for all target frames)
+const results = await injector.run(
+  (msg: string) => {
+    console.log(msg);
+    return `Echo: ${msg}`;
+  },
+  ["Hello from the extension!"]
 );
 
-// Inject one or more external script files
+// Inject one or more external files
 await injector.file("scripts/content.js");
 await injector.file(["scripts/lib.js", "scripts/util.js"]);
 ```
 
-### Executing Functions
+## Features
 
-Use the `run(func: (...args: any[]) => any, args?: any[])` method to inject and execute a function. Returns an array of results (one per frame).
-
-### Injecting Script Files
-
-Use the `file(files: string | string[])` method to inject external script file(s).
-
-### Updating Options
-
-Use the `options(opts: Partial<InjectScriptOptions>)` method to merge or override injection options on an existing injector instance.
+- Unified API for Manifest V2 and V3 (version detection via `@addon-core/browser`).
+- Inject functions (`run`) and files (`file`).
+- Precise targeting: top frame, specific `frameId[]`, all frames, or (MV3) `documentId[]`.
+- `world` support (MV3): `MAIN`/`ISOLATED`; instant injection when `runAt: 'document_start'`.
+- Strongly-typed results: returns an array of `InjectionResult<Awaited<R>>` (one per frame).
+- Update options on the fly with `options()`.
 
 ## API
 
 ### `injectScript(options: InjectScriptOptions): InjectScriptContract`
 
-Creates and returns a new script injector. Detects your manifest version via `@adnbn/browser` and delegates to the appropriate implementation.
+Creates and returns a new script injector. The implementation is chosen internally based on your manifest (MV2/MV3).
 
-#### `InjectScriptContract`
+#### Contract
 
-- `run(func: (...args: A) => R, args?: A): Promise<InjectionResult<Awaited<R>>[]>`
-- `file(files: string | string[]): Promise<void>`
-- `options(opts: Partial<InjectScriptOptions>): this`
+```ts
+interface InjectScriptContract {
+  run<A extends any[], R>(
+    func: (...args: A) => R,
+    args?: A
+  ): Promise<chrome.scripting.InjectionResult<chrome.scripting.Awaited<R>>[]>;
 
-## Options
+  file(files: string | string[]): Promise<void>;
 
-| Option            | Type                                                    | Description                                                                                                  |
-| ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `tabId`           | `number` (required)                                     | Target browser tab ID.                                                                                       |
-| `frameId`         | `boolean \| number \| number[]`                         | `true` for all frames, number or list for specific frame IDs.                                                |
-| `matchAboutBlank` | `boolean`                                               | Include `about:blank` and similar frames (V2 and V3). Default: `true`.                                       |
-| `runAt`           | `'document_start' \| 'document_end' \| 'document_idle'` | Script injection timing. Use `document_start`, `document_end`, or `document_idle`. Default: `document_idle`. |
-| `timeFallback`    | `number`                                                | (V2 only) ms before timing out. Default: `4000`.                                                             |
-| `world`           | `'MAIN' \| 'ISOLATED'`                                  | (V3 only) Execution world for script injection.                                                              |
-| `documentId`      | `string \| string[]`                                    | (V3 only) Document IDs for injection target.                                                                 |
+  options(options: Partial<InjectScriptOptions>): this;
+}
+```
+
+#### Options
+
+```ts
+interface InjectScriptOptions {
+  tabId: number;
+  frameId?: boolean | number | number[];
+  matchAboutBlank?: boolean;   // defaults to true (MV2/MV3)
+
+  // MV2
+  runAt?: chrome.extensionTypes.RunAt; // 'document_start' | 'document_end' | 'document_idle'
+  timeFallback?: number;               // timeout in ms, default 4000
+
+  // MV3
+  world?: chrome.scripting.ExecutionWorld | `${chrome.scripting.ExecutionWorld}`; // 'MAIN' | 'ISOLATED'
+  documentId?: string | string[];      // Firefox does not support documentIds in target
+}
+```
+
+- `frameId`: `true` — all frames; a number or array — specific `frameId`s; `false` or undefined — top frame only.
+- `matchAboutBlank`: if omitted, the library enables it by default (`true`).
+- `runAt`: Chrome default is `document_idle` (when not specified).
+- `timeFallback` (MV2): if results do not arrive in time, the promise will be rejected with an error.
+- `world` (MV3): sets the execution world. When `runAt: 'document_start'`, `injectImmediately` is enabled.
+- `documentId` (MV3): target specific documents. Firefox does not support `documentIds`; the library gracefully avoids using them there.
 
 ## Examples
 
+Inject into specific frames:
+
 ```ts
-import injectScript from "@adnbn/inject-script";
-
-const injector = injectScript({
-    tabId: 123,
-    frameId: [0, 1],
-    runAt: "document_start",
-    world: "MAIN",
-    documentId: ["doc1", "doc2"],
-});
-
-// Execute code and handle results
-const results = await injector.run(() => location.href);
-console.log(results);
-
-// Inject scripts
-await injector.file(["content.js", "helper.js"]);
+const injector = injectScript({ tabId: 123, frameId: [0, 2] });
+const results = await injector.run(() => window.location.href);
+console.log(results.map(r => ({ frameId: r.frameId, url: r.result })));
 ```
 
-## Development
+All frames:
 
-Build files
-
-```bash
-npm run build
+```ts
+await injectScript({ tabId: 123, frameId: true }).file(["a.js", "b.js"]);
 ```
 
-Watch mode
+MV3: target by documentId and choose execution world:
 
-```bash
-npm run build:watch
+```ts
+await injectScript({
+  tabId: 123,
+  documentId: ["doc-1", "doc-2"],
+  world: "MAIN",
+}).run(() => ({ ready: document.readyState }));
 ```
 
-Code formatting
+Update options on the fly:
 
-```bash
-npm run format
+```ts
+const inj = injectScript({ tabId: 123, frameId: false });
+await inj.options({ frameId: true }).file("content.js");
 ```
 
-## Contributing
+## MV2/MV3 Compatibility
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- MV2: the library serializes your function and arguments, executes the code in target frames, and returns results via `chrome.runtime.sendMessage`.
+  - If your function throws, the result for that frame will be `undefined`, and the error will be logged in the page DevTools console.
+  - Timeout is controlled by the `timeFallback` option (default 4000 ms).
+  - Result order: the top frame (`frameId = 0`) is the first element in the array.
+- MV3: uses `chrome.scripting.executeScript` with a properly constructed `target` (`tabId`, `frameIds`/`allFrames`, or `documentIds` when available) and `world`/`injectImmediately` options.
+  - Firefox does not support `documentIds` — the library will automatically avoid using them.
 
-## License
+## Recipes
 
-MIT © Addon Bone
+- Inject as early as possible:
+  - Set `runAt: 'document_start'` (MV2); in MV3 this enables `injectImmediately: true`.
+- Inject into an isolated world (MV3):
+  - `world: 'ISOLATED'` — your code won’t conflict with the page script.
+- Performance:
+  - Group files in a single `file([..])` call when possible to reduce overhead.
+- Safety:
+  - Functions passed to `run` should be self-contained: rely only on what’s available in the page context. In MV2 they are string-serialized.
+
+## Troubleshooting
+
+- Timeout error (MV2): increase `timeFallback`.
+- `undefined` result (MV2): check the page console — the function may have thrown.
+- Nothing happens:
+  - Ensure your extension has permissions for the target tab/frame(s).
+  - Verify `tabId`, `frameId`/`documentId`, and the `runAt` timing.
+- Conflicts with page code (MV3): use `world: 'ISOLATED'`.
+

@@ -4,7 +4,7 @@ type ExecutionWorld = chrome.scripting.ExecutionWorld;
 type InjectionResult<T> = chrome.scripting.InjectionResult<T>;
 
 export interface InjectScriptContract {
-    run: <A extends any[], R extends any>(func: (...arg: A) => R, args?: A) => Promise<InjectionResult<Awaited<R>>[]>;
+    run: <A extends any[], R>(func: (...arg: A) => R, args?: A) => Promise<InjectionResult<Awaited<R>>[]>;
 
     file: (files: string | string[]) => Promise<void>;
 
@@ -21,6 +21,6 @@ export interface InjectScriptOptions {
     timeFallback?: number;
 
     // Options for MV3
-    world?: ExecutionWorld;
+    world?: ExecutionWorld | `${ExecutionWorld}`;
     documentId?: string | string[];
 }
