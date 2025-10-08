@@ -21,6 +21,6 @@ export interface InjectScriptOptions {
     timeFallback?: number;
 
     // Options for MV3
-    world?: ExecutionWorld;
+    world?: ExecutionWorld | `${ExecutionWorld}`;
     documentId?: string | string[];
 }

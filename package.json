@@ -57,8 +57,7 @@
     "test:ci": "jest --ci --passWithNoTests --coverage",
     "test:related": "jest --bail --passWithNoTests --findRelatedTests",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "release": "release-it",
-    "release:preview": "release-it --no-github.release --no-npm.publish --no-git.tag --ci"
+    "release": "release-it"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,cjs,mjs}": [
@@ -86,5 +85,9 @@
     "release-it": "^19.0.5",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "glob": "^9.3.5",
+    "source-map": "npm:source-map-js@^1.2.0"
   }
 }
