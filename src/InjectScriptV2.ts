@@ -115,6 +115,36 @@ export default class extends AbstractInjectScript {
 
     protected generateCode(): (type: string, func: (...args: any[]) => any, args: any[]) => void {
         return (type: string, func: (...args: any[]) => any, args: any[]): void => {
+            const getBrowser = (): typeof chrome | undefined => {
+                const api = globalThis?.browser?.runtime?.id ? globalThis.browser : globalThis.chrome;
+
+                return api?.runtime ? api : undefined;
+            };
+
+            const sendMessage = (message: any): void => {
+                const browser = getBrowser();
+
+                if (!browser) {
+                    return;
+                }
+
+                try {
+                    browser.runtime.sendMessage(message, () => {
+                        const error = browser.runtime.lastError;
+
+                        if (error) {
+                            console.error(
+                                `Failed to send a message from the injected script: ${error?.message ?? "unknown error"}`
+                            );
+                        }
+                    });
+                } catch (e) {
+                    console.error(
+                        `Unexpected exception during message dispatch from injected context: ${e instanceof Error ? e.message : String(e)}`
+                    );
+                }
+            };
+
             const data: Record<string, unknown> = {};
 
             Promise.resolve()
@@ -130,7 +160,7 @@ export default class extends AbstractInjectScript {
                     };
                 })
                 .finally(() => {
-                    chrome.runtime.sendMessage({type, data});
+                    sendMessage({type, data});
                 });
         };
     }
