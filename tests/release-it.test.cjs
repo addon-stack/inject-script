@@ -29,15 +29,27 @@ describe("release-it version policy", () => {
         expect(whatBump([{type}], "0.3.1")).toEqual({level: 1});
     });
 
-    test.each(["fix", "perf", "refactor", "ci"])("uses a patch bump for %s", type => {
+    test.each(["fix", "deps", "perf", "refactor"])("uses a patch bump for %s", type => {
         expect(whatBump([{type}], "0.3.1")).toEqual({level: 2});
+    });
+
+    test("does not release for CI and maintenance changes together", () => {
+        expect(whatBump([{type: "ci"}, {type: "chore"}, {type: "docs"}], "0.5.0")).toBeNull();
+    });
+
+    test("releases a patch for dependency changes alongside CI changes", () => {
+        expect(whatBump([{type: "ci"}, {type: "deps"}], "0.5.0")).toEqual({level: 2});
+    });
+
+    test("keeps breaking CI changes subject to the breaking-change policy", () => {
+        expect(whatBump([{type: "ci", breaking: "!"}], "1.0.0")).toEqual({level: 0});
     });
 
     test("uses the highest non-breaking bump", () => {
         expect(whatBump([{type: "fix"}, {type: "feat"}], "0.3.1")).toEqual({level: 1});
     });
 
-    test.each(["docs", "test", "chore", "build"])("does not release for %s alone", type => {
+    test.each(["docs", "test", "chore", "build", "ci", "style"])("does not release for %s alone", type => {
         expect(whatBump([{type}], "0.3.1")).toBeNull();
     });
 });

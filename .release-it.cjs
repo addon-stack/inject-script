@@ -94,6 +94,7 @@ function getContributors() {
 const types = new Map([
     ["feat", "✨ Features"],
     ["fix", "🐛 Bug Fixed"],
+    ["deps", "📦 Dependencies"],
     ["perf", "⚡️ Performance Improvements"],
     ["refactor", "🛠️ Refactoring"],
     ["docs", "📝 Documentation"],
@@ -154,7 +155,7 @@ function whatBump(commits, currentVersion = pkg.version) {
             isMinor = true;
         }
 
-        if (["fix", "perf", "refactor", "ci"].includes(type)) {
+        if (["fix", "deps", "perf", "refactor"].includes(type)) {
             isPatch = true;
         }
     }
