@@ -1,5 +1,27 @@
 # Changelog
 
+## 🚀 Release `@addon-core/inject-script` v0.5.1 (2026-10-14)
+
+
+### 📦 Dependencies
+
+* update dependencies ([bd116d3](https://github.com/addon-stack/inject-script/commit/bd116d3398fbe16dfc8038448e8bb6f6c44903ca))
+
+
+
+
+### 🤖 CI
+
+* **deps:** automate dependency updates with Renovate ([3b7b91b](https://github.com/addon-stack/inject-script/commit/3b7b91bbb416e95e7016798883e39f4539e28157))
+
+
+
+
+
+### 🙌 Contributors
+
+- [Anjey Tsibylskij](https://github.com/atldays) (@atldays) — 3 commits
+
 ## 🚀 Release `@addon-core/inject-script` v0.5.0 (2026-08-25)
 
 ### 💥 Breaking Changes
