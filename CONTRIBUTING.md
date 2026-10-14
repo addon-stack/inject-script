@@ -26,7 +26,7 @@ git switch -c feature/<short-name>
 
 ## Local setup
 
-Node.js 20 is the default CI environment. The full release gate also exercises Node.js 18, 20, and 22.
+Node.js 20 is the default CI environment. Pull requests into `main` and the release gate also exercise Node.js 18, 20, and 22.
 
 ```bash
 git clone git@github.com:addon-stack/inject-script.git
@@ -48,7 +48,8 @@ Useful commands:
 | `npm run typecheck` | Type-check package sources |
 | `npm run test:types` | Type-check public API contract fixtures |
 | `npm run test` | Build and run the Jest suite |
-| `npm run test:ci` | Build and run Jest with coverage |
+| `npm run test:ci` | Build, run Jest with coverage, and check dependency-release integration |
+| `npm run test:tooling` | Verify Renovate, commitlint, and changelog integration |
 | `npm run release` | Perform a real maintainer release through release-it |
 
 `npm run release` is not a dry run. Do not execute it unless you are intentionally publishing a release and have the required maintainer access.
@@ -71,11 +72,12 @@ When changing public behavior, update the implementation, types, tests, and READ
 
 ## Tests
 
-The test suite covers three different contracts:
+The test suite covers the following contracts:
 
 - `tests/types.test.ts` verifies compile-time API behavior.
 - `tests/inject-script.test.cjs` verifies MV2/MV3 runtime behavior against the built package.
 - `tests/release-it.test.cjs` verifies release versioning policy.
+- `tests/dependency-release.test.mjs` verifies the real parser, commitlint CLI, and generated dependency release notes.
 
 For adapter changes, cover the affected combinations where relevant:
 
@@ -107,7 +109,7 @@ Local hooks provide additional protection:
 - `commit-msg` validates Conventional Commits with commitlint.
 - `pre-push` runs `typecheck` and the full `test:ci` command.
 
-GitHub Actions repeats lint, typecheck, tests, coverage, and production build checks. Release runs use the full operating-system and Node.js matrix.
+GitHub Actions repeats lint, typecheck, tests, coverage, and production build checks. Pull requests into `main` and release runs use the full operating-system and Node.js matrix. The aggregate `CI passed` check also requires strict Renovate configuration validation; failed, cancelled, or skipped prerequisites fail this check.
 
 ## Commit messages
 
@@ -125,6 +127,8 @@ Common examples:
 ```text
 feat(target): add document targeting
 fix(mv2): preserve partial timeout results
+deps: update dependencies
+ci: update workflow actions
 refactor(results): centralize native normalization
 test(types): cover interface arguments
 docs: simplify the quick start
@@ -145,11 +149,37 @@ Release versions are derived from commit history by `release-it` and `@release-i
 - A breaking change increments major at `1.x` and newer.
 - A breaking change increments minor while the package is on `0.x`.
 - `feat` and `revert` increment minor.
-- `fix`, `perf`, `refactor`, and `ci` increment patch.
-- `docs`, `test`, `build`, `chore`, and `style` do not trigger a release by themselves.
+- `fix`, `deps`, `perf`, and `refactor` increment patch.
+- `docs`, `test`, `build`, `chore`, `ci`, and `style` do not trigger a release by themselves.
 - When several changes are present, the highest applicable increment wins.
 
 Do not edit released changelog entries manually. `CHANGELOG.md` is generated from Conventional Commits during release.
+
+## Automated dependency updates
+
+The **Update Dependencies** workflow runs every Sunday at **02:15 America/Los_Angeles** and can also be started from **Actions → Update Dependencies → Run workflow**. The time follows Los Angeles daylight saving rules.
+
+Renovate reads `renovate.json` from `main` and updates only `@addon-core/browser` and `@types/chrome`, together with their required lockfile changes. Stable updates of any size are grouped in one `deps/update-dependencies` branch and one PR into `main`, including Chrome-types-only updates. Other direct dependencies and standalone lockfile maintenance are disabled.
+
+On each run, Renovate refreshes its branch from the current `main` when needed. An open bot-managed PR is updated in place. After merging, a future update can recreate the same branch name. No available update means no empty PR. Manually committing to an open bot branch pauses automatic updates to protect those commits.
+
+The bot creates `deps: update dependencies` commits. Ordinary dependency-only changes trigger a **patch** release and appear under **📦 Dependencies** in the changelog and GitHub release notes. Keep the `deps: ...` title when squashing. Breaking markers and other commits still follow the normal release policy.
+
+The App token triggers the normal PR checks: lint, source and public API type checks, build, tests, and strict Renovate configuration validation. **Merging remains manual.** Failed checks leave the PR open and do not publish a release. After merge, the existing Release workflow repeats the full checks, publishes the package, and syncs `main` back into `develop`.
+
+Keep `conventional-commits-parser` 6.x as an explicit development dependency. The release tooling needs parser 6.x through optional peers, while commitlint needs parser 5.x. Explicitly declaring parser 6.x prevents npm lockfile-only regeneration from dropping the release parser. After changing it, regenerate the lockfile in a clean directory and verify `npm ci` and the release tooling tests.
+
+### Connect the shared GitHub App
+
+Reuse the existing organization App **addon-stack-dependency-updates**; each package keeps its own workflow and dependency rules.
+
+1. In the `addon-stack` organization settings, open **GitHub Apps → Configure** for the existing installation and add **inject-script** under **Only select repositories**. Keep existing repositories selected. The existing App permissions are sufficient; no new App or key is needed.
+2. Under **Secrets and variables → Actions**, add `inject-script` to the selected repositories for both the organization variable `RENOVATE_APP_CLIENT_ID` and the organization secret `RENOVATE_APP_PRIVATE_KEY`. The workflow creates a short-lived token scoped to this repository only. Renovate does not need an npm publishing token.
+3. Merge the setup from `develop` into `main`. Both scheduled runs and the manual workflow entry need the workflow file on the default branch.
+4. Run **Update Dependencies** manually and inspect the first PR. Configure the PR check **CI passed** as required for `main` and require an up-to-date branch. Do not give the dependency App a branch-protection bypass.
+5. Account for release automation before enforcing branch rules: `release-it` pushes version/changelog commits to `main`, and the sync step writes to `develop`. Rules requiring PRs for all writes need a suitable exception for the release writer; the dependency App is not the release writer.
+
+For another package, repeat the installation and organization-variable/secret access steps, then add its workflow, dependency allowlist, release policy, tests, and documentation. GitHub supports [changing the repositories available to an installed App](https://docs.github.com/en/apps/using-github-apps/reviewing-and-modifying-installed-github-apps) and [sharing organization secrets with selected repositories](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets).
 
 ## Pull requests
 

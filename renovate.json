@@ -1,0 +1,54 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "baseBranchPatterns": [
+    "main"
+  ],
+  "branchPrefix": "deps/",
+  "enabledManagers": [
+    "npm"
+  ],
+  "includePaths": [
+    "package.json",
+    "package-lock.json"
+  ],
+  "automerge": false,
+  "dependencyDashboard": false,
+  "ignoreUnstable": true,
+  "prCreation": "immediate",
+  "rebaseWhen": "behind-base-branch",
+  "semanticCommits": "enabled",
+  "semanticCommitType": "deps",
+  "semanticCommitScope": null,
+  "separateMajorMinor": false,
+  "separateMinorPatch": false,
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "vulnerabilityAlerts": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "description": "Keep dependency updates limited to the explicitly enabled packages.",
+      "matchPackageNames": [
+        "*"
+      ],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "@addon-core/browser",
+        "@types/chrome"
+      ],
+      "matchDepTypes": [
+        "dependencies",
+        "devDependencies"
+      ],
+      "enabled": true,
+      "rangeStrategy": "bump",
+      "groupName": "dependencies",
+      "groupSlug": "update-dependencies",
+      "groupSingleUpdates": true
+    }
+  ]
+}
