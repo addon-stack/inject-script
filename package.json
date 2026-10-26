@@ -83,7 +83,7 @@
     "@commitlint/cli": "^20.0.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@release-it/conventional-changelog": "^10.0.1",
-    "@types/chrome": "^0.3.5",
+    "@types/chrome": "^0.3.6",
     "@types/jest": "^30.0.0",
     "conventional-commits-parser": "^6.4.0",
     "husky": "^9.1.7",
