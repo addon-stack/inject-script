@@ -1,5 +1,20 @@
 # Changelog
 
+## 🚀 Release `@addon-core/inject-script` v0.5.2 (2026-10-26)
+
+
+### 📦 Dependencies
+
+* update dependencies ([4b15830](https://github.com/addon-stack/inject-script/commit/4b1583024dc6b09af55068d67307037621f064bf))
+
+
+
+
+
+### 🙌 Contributors
+
+- [Anjey Tsibylskij](https://github.com/atldays) (@atldays) — 1 commits
+
 ## 🚀 Release `@addon-core/inject-script` v0.5.1 (2026-10-14)
 
 
