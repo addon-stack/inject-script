@@ -1,6 +1,6 @@
 {
   "name": "@addon-core/inject-script",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "A lightweight, TypeScript-ready library for injecting JavaScript functions or external scripts into browser extension tabs and frames (Manifest V2 & V3).",
   "keywords": [
     "browser",
@@ -76,7 +76,7 @@
     ]
   },
   "dependencies": {
-    "@addon-core/browser": "^0.12.0"
+    "@addon-core/browser": "^0.13.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
