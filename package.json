@@ -76,7 +76,7 @@
     ]
   },
   "dependencies": {
-    "@addon-core/browser": "^0.12.0"
+    "@addon-core/browser": "^0.13.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
